@@ -18,6 +18,7 @@
     "fix-all": "powershell -ExecutionPolicy Bypass -File scripts/complete-fix.ps1"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "dotenv": "^16.3.1",
     "jspdf": "^4.1.0",
     "next": "16.0.3",

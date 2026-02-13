@@ -14,7 +14,14 @@ export async function GET() {
     );
   } catch (error: any) {
     console.error('Error initializing database:', error);
-    
+
+    if (error.message?.includes('DATABASE_URL is not configured')) {
+      return NextResponse.json(
+        { error: 'Add DATABASE_URL in Vercel Environment Variables. Get a free database at neon.tech' },
+        { status: 503 }
+      );
+    }
+
     let errorMessage = 'Failed to initialize database';
     
     // Provide specific error messages

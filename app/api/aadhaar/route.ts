@@ -30,7 +30,14 @@ export async function GET(request: NextRequest) {
     }
   } catch (error: any) {
     console.error('Error fetching Aadhaar details:', error);
-    
+
+    if (error.message?.includes('DATABASE_URL is not configured')) {
+      return NextResponse.json(
+        { error: 'Database not configured. Add DATABASE_URL in Vercel Environment Variables.' },
+        { status: 503 }
+      );
+    }
+
     // Check for database connection errors
     if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
       return NextResponse.json(
