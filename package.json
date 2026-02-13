@@ -1,0 +1,35 @@
+{
+  "name": "aadhaar-details-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "add-test-data": "tsx scripts/add-test-data.ts",
+    "test-db": "tsx scripts/test-db-connection.ts",
+    "setup-db": "powershell -ExecutionPolicy Bypass -File scripts/setup-database.ps1",
+    "find-password": "powershell -ExecutionPolicy Bypass -File scripts/find-postgres-password.ps1",
+    "setup-connection-string": "powershell -ExecutionPolicy Bypass -File scripts/setup-with-connection-string.ps1",
+    "fix-all": "powershell -ExecutionPolicy Bypass -File scripts/complete-fix.ps1"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "jspdf": "^4.1.0",
+    "next": "16.0.3",
+    "pg": "^8.11.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/pg": "^8.10.9",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "16.0.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3"
+  }
+}
