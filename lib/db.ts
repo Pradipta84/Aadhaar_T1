@@ -1,11 +1,8 @@
 import { Pool } from 'pg';
 
-// PostgreSQL connection pool
-// Supports both connection string and individual env vars
+// PostgreSQL connection pool - lazy init for Vercel serverless (avoids build-time connection)
 const getPoolConfig = () => {
-  // Priority 1: Use DATABASE_URL connection string if provided
   if (process.env.DATABASE_URL) {
-    console.log('Using DATABASE_URL connection string');
     const isCloudDb = [
       'amazonaws.com',
       'azure.com',
@@ -19,28 +16,33 @@ const getPoolConfig = () => {
     return {
       connectionString: process.env.DATABASE_URL,
       ssl: isCloudDb ? { rejectUnauthorized: false } : false,
+      connectionTimeoutMillis: 10000,
+      max: process.env.VERCEL ? 1 : 10,
     };
   }
-  
-  // Priority 2: Use individual environment variables
-  const config = {
+  return {
     user: process.env.DB_USER || 'postgres',
     host: process.env.DB_HOST || 'localhost',
     database: process.env.DB_NAME || 'aadhaar_db',
     password: process.env.DB_PASSWORD || 'postgres',
     port: parseInt(process.env.DB_PORT || '5432'),
+    connectionTimeoutMillis: 10000,
   };
-  
-  console.log(`Using individual DB config: ${config.host}:${config.port}/${config.database}`);
-  return config;
 };
 
-const pool = new Pool(getPoolConfig());
+let pool: Pool | null = null;
+
+function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool(getPoolConfig());
+  }
+  return pool;
+}
 
 // Initialize database schema
 export async function initDatabase() {
   try {
-    const client = await pool.connect();
+    const client = await getPool().connect();
     
     // Create aadhaar_details table if it doesn't exist
     await client.query(`
@@ -74,7 +76,7 @@ export async function initDatabase() {
 
 // Get Aadhaar details by number
 export async function getAadhaarDetails(aadhaarNumber: string) {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     const result = await client.query(
       'SELECT * FROM aadhaar_details WHERE aadhaar_number = $1',
@@ -99,7 +101,7 @@ export async function saveAadhaarDetails(data: {
   phone_number?: string;
   email?: string;
 }) {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     const result = await client.query(
       `INSERT INTO aadhaar_details 
@@ -136,7 +138,7 @@ export async function saveAadhaarDetails(data: {
 
 // Get all Aadhaar details
 export async function getAllAadhaarDetails() {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     const result = await client.query(
       'SELECT * FROM aadhaar_details ORDER BY created_at DESC'
@@ -150,4 +152,4 @@ export async function getAllAadhaarDetails() {
   }
 }
 
-export default pool;
+export default getPool;

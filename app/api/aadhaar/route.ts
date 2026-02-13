@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAadhaarDetails, saveAadhaarDetails, getAllAadhaarDetails } from '@/lib/db';
 import { AadhaarFormData } from '@/types/aadhaar';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // GET - Fetch Aadhaar details by number or get all
 export async function GET(request: NextRequest) {
   try {

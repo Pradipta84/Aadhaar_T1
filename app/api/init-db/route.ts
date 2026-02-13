@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { initDatabase } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Initialize database schema
 export async function GET() {
   try {

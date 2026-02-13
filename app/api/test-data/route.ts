@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { saveAadhaarDetails } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 const testData = [
   {
     aadhaar_number: '123456789012',
