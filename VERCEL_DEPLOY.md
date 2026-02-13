@@ -60,3 +60,10 @@ Vercel auto-detects Next.js. Default: `next build`
 - `.env` is in `.gitignore` — never commit credentials
 - The app supports both `DATABASE_URL` and individual DB env vars
 - SSL is auto-enabled for Vercel Postgres, Neon, Supabase, and similar providers
+
+## Troubleshooting Deploy Failures
+
+1. **Check build logs** in Vercel → Deployments → Failed deployment → Building
+2. **Set DATABASE_URL before first deploy** – add env var in Project Settings, then redeploy
+3. **Node version** – Vercel uses Node 18+ by default; the app specifies `engines.node` in package.json
+4. **If build fails** – ensure no syntax errors: run `npm run build` locally first

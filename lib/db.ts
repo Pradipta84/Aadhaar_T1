@@ -1,8 +1,9 @@
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
 
-// PostgreSQL connection pool - lazy init for Vercel serverless (avoids build-time connection)
+// PostgreSQL - dynamic import for Vercel (avoids build bundling issues)
 const getPoolConfig = () => {
-  if (process.env.DATABASE_URL) {
+  const url = process.env.DATABASE_URL;
+  if (url) {
     const isCloudDb = [
       'amazonaws.com',
       'azure.com',
@@ -12,9 +13,9 @@ const getPoolConfig = () => {
       'supabase.com',
       'pooler.supabase.com',
       'vercel-storage.com',
-    ].some((host) => process.env.DATABASE_URL!.includes(host));
+    ].some((host) => url.includes(host));
     return {
-      connectionString: process.env.DATABASE_URL,
+      connectionString: url,
       ssl: isCloudDb ? { rejectUnauthorized: false } : false,
       connectionTimeoutMillis: 10000,
       max: process.env.VERCEL ? 1 : 10,
@@ -25,16 +26,20 @@ const getPoolConfig = () => {
     host: process.env.DB_HOST || 'localhost',
     database: process.env.DB_NAME || 'aadhaar_db',
     password: process.env.DB_PASSWORD || 'postgres',
-    port: parseInt(process.env.DB_PORT || '5432'),
+    port: parseInt(process.env.DB_PORT || '5432', 10),
     connectionTimeoutMillis: 10000,
   };
 };
 
 let pool: Pool | null = null;
 
-function getPool(): Pool {
+async function getPool(): Promise<Pool> {
+  if (process.env.VERCEL && !process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured. Add it in Vercel Project Settings → Environment Variables.');
+  }
   if (!pool) {
-    pool = new Pool(getPoolConfig());
+    const { default: Pg } = await import('pg');
+    pool = new Pg.Pool(getPoolConfig());
   }
   return pool;
 }
@@ -42,7 +47,7 @@ function getPool(): Pool {
 // Initialize database schema
 export async function initDatabase() {
   try {
-    const client = await getPool().connect();
+    const client = await (await getPool()).connect();
     
     // Create aadhaar_details table if it doesn't exist
     await client.query(`
@@ -76,7 +81,7 @@ export async function initDatabase() {
 
 // Get Aadhaar details by number
 export async function getAadhaarDetails(aadhaarNumber: string) {
-  const client = await getPool().connect();
+  const client = await (await getPool()).connect();
   try {
     const result = await client.query(
       'SELECT * FROM aadhaar_details WHERE aadhaar_number = $1',
@@ -101,7 +106,7 @@ export async function saveAadhaarDetails(data: {
   phone_number?: string;
   email?: string;
 }) {
-  const client = await getPool().connect();
+  const client = await (await getPool()).connect();
   try {
     const result = await client.query(
       `INSERT INTO aadhaar_details 
@@ -138,7 +143,7 @@ export async function saveAadhaarDetails(data: {
 
 // Get all Aadhaar details
 export async function getAllAadhaarDetails() {
-  const client = await getPool().connect();
+  const client = await (await getPool()).connect();
   try {
     const result = await client.query(
       'SELECT * FROM aadhaar_details ORDER BY created_at DESC'
